@@ -5,12 +5,14 @@ async function readPayload(request) {
   if (typeof request.body === 'string') {
     try { return JSON.parse(request.body); } catch {}
   }
+
   let raw = '';
   await new Promise((resolve, reject) => {
     request.on('data', chunk => { raw += chunk; });
     request.on('end', resolve);
     request.on('error', reject);
   });
+
   if (!raw) return {};
   return JSON.parse(raw);
 }
@@ -18,23 +20,15 @@ async function readPayload(request) {
 module.exports = async (request, response) => {
   response.setHeader('Cache-Control', 'no-store');
 
+  if (request.method === 'GET') {
+    return response.status(200).json({ ok: true });
+  }
+
+  if (request.method !== 'POST') {
+    return response.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
+
   try {
-    if (request.method === 'GET') {
-      const upstream = await fetch(APPS_SCRIPT_URL, { redirect: 'follow' });
-      const text = await upstream.text();
-      return response.status(200).json({
-        ok: upstream.ok && text.includes('TaterTotzTees order endpoint is active.'),
-        googleStatus: upstream.status,
-        googleContentType: upstream.headers.get('content-type'),
-        googleResponse: text.slice(0, 500),
-        finalUrl: upstream.url
-      });
-    }
-
-    if (request.method !== 'POST') {
-      return response.status(405).json({ ok: false, error: 'Method not allowed' });
-    }
-
     const payload = await readPayload(request);
 
     const upstream = await fetch(APPS_SCRIPT_URL, {
@@ -46,35 +40,20 @@ module.exports = async (request, response) => {
 
     const text = await upstream.text();
     let result;
+
     try {
       result = JSON.parse(text);
     } catch {
-      return response.status(502).json({
-        ok: false,
-        error: 'Google Apps Script returned a non-JSON response',
-        googleStatus: upstream.status,
-        googleContentType: upstream.headers.get('content-type'),
-        googleResponse: text.slice(0, 500),
-        finalUrl: upstream.url
-      });
+      return response.status(502).json({ ok: false, error: 'Order service unavailable' });
     }
 
     if (!upstream.ok || result?.ok !== true) {
-      return response.status(502).json({
-        ok: false,
-        error: result?.error || 'Google Apps Script rejected the order',
-        googleStatus: upstream.status,
-        googleResponse: result,
-        finalUrl: upstream.url
-      });
+      return response.status(502).json({ ok: false, error: 'Order service unavailable' });
     }
 
     return response.status(200).json({ ok: true });
   } catch (error) {
     console.error('Order submission failed:', error);
-    return response.status(500).json({
-      ok: false,
-      error: error?.message || 'Unable to submit order right now',
-    });
+    return response.status(500).json({ ok: false, error: 'Unable to submit order right now' });
   }
 };
