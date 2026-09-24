@@ -33,7 +33,7 @@ document.querySelector('#form').onsubmit=async e=>{
     updatePreview();
     success.scrollIntoView({behavior:'smooth',block:'center'});
   }catch(err){
-    alert('We could not submit your order. Please check your connection and try again.');
+    alert('Order was not submitted: '+(err && err.message ? err.message : 'Unknown error'));
   }finally{
     btn.disabled=false;
     btn.textContent='SUBMIT ORDER';
