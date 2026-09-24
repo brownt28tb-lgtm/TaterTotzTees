@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXS3Wdgh-8jujFgMFkbL1hr7xHurkyyhLTUu3Sw0DGuKpXJt90VYoP0wzvYsstBVW6/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiFs40EPlnVtlMtMornw_1Yua2apUhDG8_EqlIuTdva6tR-CqKAQFyD_57v-pKF0qP/exec';
 
 async function readPayload(request) {
   if (request.body && typeof request.body === 'object') return request.body;
