@@ -21,8 +21,8 @@ document.querySelector('#form').onsubmit=async e=>{
     await fetch(ORDER_ENDPOINT,{
       method:'POST',
       mode:'no-cors',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body:new URLSearchParams(data).toString()
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify(data)
     });
     success.style.display='block';
     form.reset();
