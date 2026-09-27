@@ -48,7 +48,14 @@ module.exports = async (request, response) => {
     }
 
     if (!upstream.ok || result?.ok !== true) {
-      return response.status(502).json({ ok: false, error: 'Order service unavailable' });
+      console.error('Apps Script rejected order:', {
+        status: upstream.status,
+        result
+      });
+      return response.status(502).json({
+        ok: false,
+        error: result?.error || ('Google order service returned HTTP ' + upstream.status)
+      });
     }
 
     return response.status(200).json({ ok: true });
